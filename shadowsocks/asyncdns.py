@@ -252,6 +252,7 @@ class DNSResolver(object):
         self._loop = None
         self._hosts = {}
         self._hostname_status = {}
+        self._hostname_response_count = {}
         self._hostname_to_cb = {}
         self._cb_to_hostname = {}
         self._cache = lru_cache.LRUCache(timeout=300)
@@ -341,6 +342,7 @@ class DNSResolver(object):
             del self._hostname_to_cb[hostname]
         if hostname in self._hostname_status:
             del self._hostname_status[hostname]
+            del self._hostname_response_count[hostname]
 
     def _handle_data(self, data):
         response = parse_response(data)
@@ -352,8 +354,13 @@ class DNSResolver(object):
                         answer[2] == QCLASS_IN:
                     ip = answer[0]
                     break
+            if self._hostname_status.get(hostname, None) == STATUS_FIRST:
+	        self._hostname_response_count[hostname][0] += 1
+	    if self._hostname_status.get(hostname, None) == STATUS_SECOND:
+	        self._hostname_response_count[hostname][1] += 1
             if not ip and self._hostname_status.get(hostname, STATUS_SECOND) \
                     == STATUS_FIRST:
+                if self._hostname_response_count[hostname][0] <> len(self._servers): return
                 self._hostname_status[hostname] = STATUS_SECOND
                 self._send_req(hostname, self._QTYPES[1])
             else:
@@ -362,6 +369,7 @@ class DNSResolver(object):
                     self._call_callback(hostname, ip)
                 elif self._hostname_status.get(hostname, None) \
                         == STATUS_SECOND:
+                    if self._hostname_response_count[hostname][1] <> len(self._servers): return
                     for question in response.questions:
                         if question[1] == self._QTYPES[1]:
                             self._call_callback(hostname, None)
@@ -400,6 +408,7 @@ class DNSResolver(object):
                     del self._hostname_to_cb[hostname]
                     if hostname in self._hostname_status:
                         del self._hostname_status[hostname]
+                        del self._hostname_response_count[hostname]
 
     def _send_req(self, hostname, qtype):
         req = build_request(hostname, qtype)
@@ -430,6 +439,7 @@ class DNSResolver(object):
             arr = self._hostname_to_cb.get(hostname, None)
             if not arr:
                 self._hostname_status[hostname] = STATUS_FIRST
+                self._hostname_response_count[hostname] = [0, 0]
                 self._send_req(hostname, self._QTYPES[0])
                 self._hostname_to_cb[hostname] = [callback]
                 self._cb_to_hostname[callback] = hostname
