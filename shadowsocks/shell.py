@@ -201,7 +201,7 @@ def get_config(is_local):
         shortopts = 'hd:s:p:k:m:c:t:vqa'
         longopts = ['help', 'fast-open', 'pid-file=', 'log-file=', 'workers=',
                     'forbidden-ip=', 'user=', 'manager-address=', 'version',
-                    'prefer-ipv6']
+                    'prefer-ipv6', 'single-ip-version']
     try:
         config_path = find_config()
         optlist, args = getopt.getopt(sys.argv[1:], shortopts, longopts)
@@ -273,6 +273,8 @@ def get_config(is_local):
                 config['verbose'] = v_count
             elif key == '--prefer-ipv6':
                 config['prefer_ipv6'] = True
+            elif key == '--single-ip-version':
+                config['single_ip_version'] = True
     except getopt.GetoptError as e:
         print(e, file=sys.stderr)
         print_help(is_local)
@@ -296,6 +298,7 @@ def get_config(is_local):
     config['local_port'] = config.get('local_port', 1080)
     config['one_time_auth'] = config.get('one_time_auth', False)
     config['prefer_ipv6'] = config.get('prefer_ipv6', False)
+    config['single_ip_version'] = config.get('single_ip_version', False)
     config['server_port'] = config.get('server_port', 8388)
 
     logging.getLogger('').handlers = []
@@ -378,6 +381,7 @@ Proxy options:
   --forbidden-ip IPLIST  comma seperated IP list forbidden to connect
   --manager-address ADDR optional server manager UDP address, see wiki
   --prefer-ipv6          resolve ipv6 address first
+  --single-ip-version     resolve ipv6 only use one ip version
 
 General options:
   -h, --help             show this help message and exit

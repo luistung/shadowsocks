@@ -248,7 +248,7 @@ STATUS_SECOND = 1
 
 class DNSResolver(object):
 
-    def __init__(self, server_list=None, prefer_ipv6=False):
+    def __init__(self, server_list=None, prefer_ipv6=False, single_ip_version=False):
         self._loop = None
         self._hosts = {}
         self._hostname_status = {}
@@ -266,6 +266,7 @@ class DNSResolver(object):
             self._QTYPES = [QTYPE_AAAA, QTYPE_A]
         else:
             self._QTYPES = [QTYPE_A, QTYPE_AAAA]
+        self.single_ip_version = single_ip_version
         self._parse_hosts()
         # TODO monitor hosts change and reload hosts
         # TODO parse /etc/gai.conf and follow its rules
@@ -361,6 +362,9 @@ class DNSResolver(object):
             if not ip and self._hostname_status.get(hostname, STATUS_SECOND) \
                     == STATUS_FIRST:
                 if self._hostname_response_count[hostname][0] <> len(self._servers): return
+                if self.single_ip_version:
+                    self._call_callback(hostname, None)
+                    return
                 self._hostname_status[hostname] = STATUS_SECOND
                 self._send_req(hostname, self._QTYPES[1])
             else:
