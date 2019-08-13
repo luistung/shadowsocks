@@ -72,7 +72,8 @@ License
 Apache License
 
 
-
+/usr/bin/python /usr/local/bin/ssserver -p 13148 -kpassword -d restart --log-file ss.log -m rc4-md5 -v --single-ip-version
+sudo sslocal -s45.116.76.156 -p 13148 -kpassword -l1080 --log-file ss.log -m rc4-md5 -d restart -v
 
 
 
