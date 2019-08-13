@@ -487,6 +487,7 @@ def test():
 
     dns_resolver.resolve(b'google.com', make_callback())
     dns_resolver.resolve('google.com', make_callback())
+    dns_resolver.resolve('www.reddit.com', make_callback())  #TODO
     dns_resolver.resolve('example.com', make_callback())
     dns_resolver.resolve('ipv6.google.com', make_callback())
     dns_resolver.resolve('www.facebook.com', make_callback())
